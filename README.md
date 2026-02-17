@@ -9,6 +9,28 @@ This repository is structured to showcase practical AI engineering quality:
 - observability-first UI
 - reproducible setup and quality checks
 
+## UI Preview
+
+![Deal Scanner UI](docs/images/deal-scanner-ui.png)
+
+### UI components
+
+- **Top table: `Deals found so far`**
+  - In-memory + persisted surfaced opportunities.
+  - `Price`: scraped deal price.
+  - `Estimate`: ensemble-estimated true value.
+  - `Discount`: `Estimate - Price`.
+  - `URL`: source page.
+
+- **Bottom-left: live logs panel**
+  - Real-time logs from Scanner, Ensemble, Specialist, Frontier, Planner, and Messaging agents.
+  - Useful for tracing latency, provider calls, and failures.
+
+- **Bottom-right: 3D vector plot**
+  - t-SNE projection of Chroma embedding vectors.
+  - Point colors map to categories.
+  - Useful for sanity-checking semantic clustering and retrieval behavior.
+
 ---
 
 ## 1) Project Purpose
@@ -190,30 +212,6 @@ uv run deal-scanner
 
 ---
 
-## 8) UI Walkthrough
-
-
-
-![Deal Scanner UI](docs/images/deal-scanner-ui.png)
-
-### UI components
-
-- **Top table: `Deals found so far`**
-  - In-memory + persisted surfaced opportunities.
-  - `Price`: scraped deal price.
-  - `Estimate`: ensemble-estimated true value.
-  - `Discount`: `Estimate - Price`.
-  - `URL`: source page.
-
-- **Bottom-left: live logs panel**
-  - Real-time logs from Scanner, Ensemble, Specialist, Frontier, Planner, and Messaging agents.
-  - Useful for tracing latency, provider calls, and failures.
-
-- **Bottom-right: 3D vector plot**
-  - t-SNE projection of Chroma embedding vectors.
-  - Point colors map to categories.
-  - Useful for sanity-checking semantic clustering and retrieval behavior.
-
 ### Runtime behavior
 
 - One planning run on initial page load.
@@ -223,7 +221,59 @@ uv run deal-scanner
 
 ---
 
-## 9) Development and Quality Checks
+## 8) Sample Results and Performance Snapshot
+
+Example outcomes from a successful run:
+
+| Metric | Sample Observation |
+|---|---|
+| Candidate deals fetched | 30 |
+| Deals selected by scanner | 5 |
+| Best surfaced discount | `$336.99` |
+| Example surfaced product | `Roborock S8 MaxV Ultra` |
+| Example deal price | `$568.00` |
+| Example estimated value | `$904.99` |
+| Planning interval | `120s` |
+
+Observed per-item pipeline timing (approx):
+- Preprocessor (LiteLLM + OpenAI): ~2-3s
+- Specialist (Modal fine-tuned model): ~1-40s (cold/warm variance)
+- Frontier (RAG retrieval + OpenAI call): ~1-3s
+
+Notes:
+- Modal cold starts can increase first specialist call latency.
+- New table rows appear only for opportunities that pass threshold policy.
+- These values are run-dependent and vary by source quality and provider latency.
+
+---
+
+## 9) Design Tradeoffs and Engineering Decisions
+
+### Why a two-estimator ensemble?
+- Frontier model + RAG contributes strong contextual reasoning from similar products.
+- Specialist model contributes domain-specific signal from fine-tuned behavior.
+- Weighted blend reduces single-model bias and stabilizes estimates.
+
+### Why `0.9 / 0.1` weights?
+- Frontier estimator showed stronger consistency across mixed categories.
+- Specialist estimator still adds value, but with higher variance across some items.
+- Current weighting favors robustness while preserving specialist signal.
+
+### Why threshold-based alerting (`DEAL_THRESHOLD=50`)?
+- Reduces noisy notifications from marginal/uncertain price gaps.
+- Keeps alerts actionable and minimizes user fatigue.
+
+### Why structured outputs for scanner?
+- Enforces schema reliability (`DealSelection`) and reduces downstream parsing failures.
+- Makes planner logic deterministic and easier to test.
+
+### Why keep both event logs and UI memory table?
+- Logs provide observability/debuggability.
+- Memory table provides operator-facing state and user-visible outcomes.
+
+---
+
+## 10) Development and Quality Checks
 
 Lint:
 ```bash
@@ -242,7 +292,7 @@ uv run python -m compileall -q main.py price_is_right.py deal_agent_framework.py
 
 ---
 
-## 10) Reliability and Engineering Decisions
+## 11) Reliability and Engineering Decisions
 
 - Prevent duplicate root logger stream handlers between runs.
 - Attach/detach UI queue handlers cleanly to avoid handler accumulation.
@@ -252,7 +302,7 @@ uv run python -m compileall -q main.py price_is_right.py deal_agent_framework.py
 
 ---
 
-## 11) Security and Secrets
+## 12) Security and Secrets
 
 - Do not commit `.env`, tokens, or private credentials.
 - Use secret managers/Modal secrets in deployment environments.
@@ -260,7 +310,7 @@ uv run python -m compileall -q main.py price_is_right.py deal_agent_framework.py
 
 ---
 
-## 12) Known Limitations
+## 13) Known Limitations
 
 - Deal quality depends on source feed quality and page structure stability.
 - Price extraction still depends on model interpretation of noisy descriptions.
@@ -269,7 +319,7 @@ uv run python -m compileall -q main.py price_is_right.py deal_agent_framework.py
 
 ---
 
-## 13) Future Enhancements
+## 14) Future Enhancements
 
 - Add confidence scoring and richer explanation metadata.
 - Add retry/backoff/circuit-breaker around provider calls.
@@ -279,7 +329,7 @@ uv run python -m compileall -q main.py price_is_right.py deal_agent_framework.py
 
 ---
 
-## 14) Portfolio / Resume Relevance
+## 15) Portfolio / Resume Relevance
 
 This project demonstrates practical expertise in:
 - agentic AI system design
@@ -292,6 +342,6 @@ This project demonstrates practical expertise in:
 
 ---
 
-## 15) License
+## 16) License
 
 MIT License. See `LICENSE`.
