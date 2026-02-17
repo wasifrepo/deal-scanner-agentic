@@ -15,7 +15,6 @@ env/
 
 # Environment and secrets
 .env
-.env.*
 
 # Local runtime artifacts
 memory.json

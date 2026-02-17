@@ -192,7 +192,7 @@ uv run deal-scanner
 
 ## 8) UI Walkthrough
 
-Save your screenshot at `docs/images/deal-scanner-ui.png` to render below:
+
 
 ![Deal Scanner UI](docs/images/deal-scanner-ui.png)
 
