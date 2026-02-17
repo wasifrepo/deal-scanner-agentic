@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deal-scanner-agentic"
+version = "0.1.0"
+description = "Agentic deal scanner that scrapes deals, estimates fair value, and sends alerts."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "beautifulsoup4>=4.12.0",
+  "chromadb>=0.5.0",
+  "datasets>=2.20.0",
+  "feedparser>=6.0.0",
+  "gradio>=5.0.0",
+  "litellm>=1.0.0",
+  "numpy>=1.26.0",
+  "openai>=1.0.0",
+  "plotly>=5.0.0",
+  "pydantic>=2.0.0",
+  "python-dotenv>=1.0.0",
+  "requests>=2.31.0",
+  "scikit-learn>=1.5.0",
+  "sentence-transformers>=3.0.0",
+  "tqdm>=4.66.0",
+]
+
+[project.scripts]
+deal-scanner = "main:main"
+
+[project.optional-dependencies]
+modal = [
+  "modal>=0.73.0",
+  "accelerate>=0.33.0",
+  "bitsandbytes>=0.43.0",
+  "peft>=0.12.0",
+  "torch>=2.3.0",
+  "transformers>=4.44.0",
+]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.6.0",
+]
+
+[tool.setuptools]
+py-modules = [
+  "deal_agent_framework",
+  "price_is_right",
+  "log_utils",
+  "main",
+]
+
+[tool.setuptools.packages.find]
+include = ["agents*"]
